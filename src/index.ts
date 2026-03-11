@@ -3,6 +3,7 @@ dotenv.config({ path: [".env.local", ".env"] })
 
 import { findExpiringLowProbContracts } from "./contracts.js"
 import { researchExposedCompanies, type OutreachReport } from "./perplexity.js"
+import { sendOutreachEmail } from "./email.js"
 import { writeFileSync } from "fs"
 import { resolve } from "path"
 
@@ -145,12 +146,22 @@ async function main() {
   const textPath = resolve(`reports/outreach-${dateStr}.txt`)
   const jsonPath = resolve(`reports/outreach-${dateStr}.json`)
 
+  const jsonStr = JSON.stringify(reports, null, 2)
+
   writeFileSync(textPath, text)
-  writeFileSync(jsonPath, JSON.stringify(reports, null, 2))
+  writeFileSync(jsonPath, jsonStr)
 
   console.log(`\nReports saved to:`)
   console.log(`  ${textPath}`)
   console.log(`  ${jsonPath}`)
+
+  // Send email if configured
+  if (process.env.RESEND_API_KEY && process.env.EMAIL_TO) {
+    console.log("\nSending outreach email...")
+    await sendOutreachEmail(text, jsonStr)
+  } else {
+    console.log("\nSkipping email (RESEND_API_KEY or EMAIL_TO not set)")
+  }
 }
 
 main().catch((err) => {
