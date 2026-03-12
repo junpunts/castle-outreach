@@ -4,7 +4,7 @@ dotenv.config({ path: [".env.local", ".env"] })
 import { findExpiringLowProbContracts } from "./contracts.js"
 import { researchExposedCompanies, type OutreachReport } from "./perplexity.js"
 import { sendOutreachEmail } from "./email.js"
-import { writeFileSync } from "fs"
+import { writeFileSync, mkdirSync } from "fs"
 import { resolve } from "path"
 
 function formatReport(reports: OutreachReport[]): string {
@@ -148,6 +148,7 @@ async function main() {
 
   const jsonStr = JSON.stringify(reports, null, 2)
 
+  mkdirSync(resolve("reports"), { recursive: true })
   writeFileSync(textPath, text)
   writeFileSync(jsonPath, jsonStr)
 
